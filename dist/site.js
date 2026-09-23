@@ -40,7 +40,7 @@ document.querySelectorAll('.reel-card').forEach(card=>{
  card.querySelectorAll('[data-video]').forEach(button=>button.addEventListener('click',()=>{
   if(button.getAttribute('aria-pressed')==='true')return;
   video.pause();video.removeAttribute('src');video.load();video.dataset.src=button.dataset.video;video.poster=button.dataset.poster;
-  video.setAttribute('aria-label',button.dataset.title+' edited by Satya Teja');play.setAttribute('aria-label','Play '+button.dataset.title);play.hidden=false;status.textContent='';
+  video.setAttribute('aria-label',button.dataset.title+' edited by RAIKO');play.setAttribute('aria-label','Play '+button.dataset.title);play.hidden=false;status.textContent='';
   card.querySelector('.reel-duration').textContent=button.dataset.duration;
   card.querySelectorAll('[data-video]').forEach(choice=>choice.setAttribute('aria-pressed',String(choice===button)));
  }));
