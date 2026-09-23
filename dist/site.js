@@ -25,3 +25,24 @@ paintTimeline();setPlaying(!reducedMotion.matches);
 let ticking=false;
 function updateScroll(){const progress=Math.max(0,Math.min(1,window.scrollY/Math.max(1,document.documentElement.scrollHeight-innerHeight)));const frame=Math.floor(progress*60*24);document.querySelector('.metadata b').textContent='00:'+String(Math.floor(frame/1440)).padStart(2,'0')+':'+String(Math.floor(frame/24)%60).padStart(2,'0')+':'+String(frame%24).padStart(2,'0');document.querySelector('.ruler').style.setProperty('--page-progress',(progress*100)+'%');ticking=false}
 window.addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(updateScroll)}},{passive:true});updateScroll();
+// Attach media only on demand, preserving bandwidth for the rest of the page.
+const clientVideos=[...document.querySelectorAll('.reel-card video')];
+document.querySelectorAll('.reel-card').forEach(card=>{
+ const video=card.querySelector('video'),play=card.querySelector('.reel-play'),status=card.querySelector('.reel-status');
+ play.addEventListener('click',()=>{
+  status.textContent='';clientVideos.forEach(other=>{if(other!==video)other.pause()});
+  if(!video.getAttribute('src'))video.src=video.dataset.src;
+  play.hidden=true;video.focus();
+  video.play().catch(()=>{status.textContent='Press play in the video controls to watch this reel.'});
+ });
+ video.addEventListener('play',()=>clientVideos.forEach(other=>{if(other!==video)other.pause()}));
+ video.addEventListener('error',()=>{status.textContent='This reel could not load. Please try again.';play.hidden=false;video.removeAttribute('src');video.load()});
+ card.querySelectorAll('[data-video]').forEach(button=>button.addEventListener('click',()=>{
+  if(button.getAttribute('aria-pressed')==='true')return;
+  video.pause();video.removeAttribute('src');video.load();video.dataset.src=button.dataset.video;video.poster=button.dataset.poster;
+  video.setAttribute('aria-label',button.dataset.title+' edited by Satya Teja');play.setAttribute('aria-label','Play '+button.dataset.title);play.hidden=false;status.textContent='';
+  card.querySelector('.reel-duration').textContent=button.dataset.duration;
+  card.querySelectorAll('[data-video]').forEach(choice=>choice.setAttribute('aria-pressed',String(choice===button)));
+ }));
+});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)clientVideos.forEach(video=>video.pause())});
