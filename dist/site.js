@@ -16,44 +16,9 @@ const edits = [
   {client:'Studio', reel:'Reel 1', duration:'00:21', group:'more', video:'assets/work/studio-reel-1.mp4', poster:'assets/work/studio-reel-1.webp'}
 ];
 
-document.getElementById('year').textContent = new Date().getFullYear();
-
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const popup = document.querySelector('.motion-popup');
-const popupClose = document.querySelector('.popup-close');
-
-function hidePopup() {
-  popup.classList.remove('show');
-  popup.setAttribute('aria-hidden', 'true');
-  popup.inert = true;
-  sessionStorage.setItem('raiko-popup-seen', 'true');
-}
-
-if (!sessionStorage.getItem('raiko-popup-seen')) {
-  window.setTimeout(() => {
-    popup.inert = false;
-    popup.classList.add('show');
-    popup.setAttribute('aria-hidden', 'false');
-  }, reducedMotion.matches ? 150 : 1800);
-}
-popupClose.addEventListener('click', hidePopup);
-popup.querySelector('a').addEventListener('click', hidePopup);
-
-const glitchTitle = document.querySelector('.glitch-title');
-let glitchTimer = 0;
-function scheduleGlitch() {
-  window.clearTimeout(glitchTimer);
-  if (reducedMotion.matches || document.hidden) return;
-  glitchTimer = window.setTimeout(() => {
-    glitchTitle.classList.add('glitching');
-    window.setTimeout(() => {
-      glitchTitle.classList.remove('glitching');
-      scheduleGlitch();
-    }, 520);
-  }, 4200 + Math.random() * 2200);
-}
-document.addEventListener('visibilitychange', scheduleGlitch);
-scheduleGlitch();
+const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
+document.getElementById('year').textContent = new Date().getFullYear();
 
 const menuToggle = document.querySelector('.menu-toggle');
 const nav = document.getElementById('site-nav');
@@ -67,55 +32,173 @@ nav.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
   nav.classList.remove('open');
 }));
 
-const inlineVideos = [...document.querySelectorAll('.inline-video')];
-document.querySelectorAll('.video-shell').forEach(shell => {
-  const video = shell.querySelector('video');
-  const cover = shell.querySelector('.play-cover');
-  cover.addEventListener('click', () => {
-    inlineVideos.forEach(other => { if (other !== video) other.pause(); });
-    if (!video.src) video.src = video.dataset.src;
-    cover.hidden = true;
-    video.play().catch(() => { cover.hidden = false; });
+const heroShowreel = document.getElementById('hero-showreel');
+const showreelToggle = document.getElementById('showreel-toggle');
+let heroPausedByUser = reducedMotion.matches;
+function setShowreelPlaying(playing, byUser = false) {
+  if (byUser) heroPausedByUser = !playing;
+  showreelToggle.setAttribute('aria-pressed', String(playing));
+  showreelToggle.textContent = playing ? 'Ⅱ Pause reel' : '▶ Play reel';
+  if (playing) heroShowreel.play().catch(() => setShowreelPlaying(false));
+  else heroShowreel.pause();
+}
+showreelToggle.addEventListener('click', () => setShowreelPlaying(showreelToggle.getAttribute('aria-pressed') !== 'true', true));
+if (!reducedMotion.matches) setShowreelPlaying(true);
+new IntersectionObserver(entries => {
+  if (!entries[0].isIntersecting) heroShowreel.pause();
+  else if (!heroPausedByUser && !reducedMotion.matches) heroShowreel.play().catch(() => setShowreelPlaying(false));
+}, {threshold:.12}).observe(heroShowreel);
+
+const revealTargets = [...document.querySelectorAll('.reveal')];
+if (reducedMotion.matches || !('IntersectionObserver' in window)) revealTargets.forEach(element => element.classList.add('visible'));
+else {
+  const revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    entry.target.classList.add('visible');
+    revealObserver.unobserve(entry.target);
+  }), {threshold:.09, rootMargin:'0px 0px -7% 0px'});
+  revealTargets.forEach(element => revealObserver.observe(element));
+}
+
+let scrollTicking = false;
+function updatePageProgress() {
+  const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+  const progress = Math.max(0, Math.min(1, scrollY / max));
+  document.documentElement.style.setProperty('--scroll-progress', `${progress * 100}%`);
+  const totalFrames = Math.floor(progress * 12 * 24);
+  const seconds = Math.floor(totalFrames / 24);
+  document.getElementById('hero-timecode').textContent = `00:00:${String(seconds).padStart(2,'0')}:${String(totalFrames % 24).padStart(2,'0')}`;
+  scrollTicking = false;
+}
+addEventListener('scroll', () => {
+  if (scrollTicking) return;
+  scrollTicking = true;
+  requestAnimationFrame(updatePageProgress);
+}, {passive:true});
+updatePageProgress();
+
+const railLinks = [...document.querySelectorAll('.chapter-rail a')];
+const chapterSections = [...document.querySelectorAll('[data-chapter-section]')];
+const chapterObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    railLinks.forEach(link => link.classList.toggle('active', link.dataset.chapter === entry.target.id));
   });
-  video.addEventListener('play', () => inlineVideos.forEach(other => { if (other !== video) other.pause(); }));
-  video.addEventListener('ended', () => { cover.hidden = false; });
+}, {rootMargin:'-32% 0px -58% 0px', threshold:0});
+chapterSections.forEach(section => chapterObserver.observe(section));
+
+const projectVideos = [...document.querySelectorAll('.project-video')];
+function loadProjectVideo(video) { if (!video.getAttribute('src')) video.src = video.dataset.src; }
+function startPreview(media) {
+  if (!finePointer.matches || reducedMotion.matches) return;
+  const video = media.querySelector('video');
+  loadProjectVideo(video); video.muted = true; video.loop = true; media.classList.add('previewing');
+  video.play().catch(() => media.classList.remove('previewing'));
+}
+function stopPreview(media) {
+  const video = media.querySelector('video');
+  video.pause(); video.currentTime = 0; media.classList.remove('previewing');
+}
+document.querySelectorAll('.project-media').forEach(media => {
+  const button = media.querySelector('.project-open');
+  media.addEventListener('mouseenter', () => startPreview(media));
+  media.addEventListener('mouseleave', () => stopPreview(media));
+  button.addEventListener('focus', () => startPreview(media));
+  button.addEventListener('blur', () => stopPreview(media));
+  button.addEventListener('click', () => {
+    stopPreview(media);
+    const video = media.querySelector('video');
+    const featuredIndex = projectVideos.indexOf(video);
+    const editIndex = featuredIndex === 0 ? 1 : featuredIndex === 1 ? 4 : 13;
+    openReel(editIndex);
+  });
 });
 
 const grid = document.getElementById('archive-grid');
 edits.forEach((edit, index) => {
   const card = document.createElement('button');
-  card.type = 'button'; card.className = 'archive-card'; card.dataset.group = edit.group; card.dataset.index = String(index);
+  card.type = 'button'; card.className = 'archive-card reveal'; card.dataset.group = edit.group; card.dataset.index = String(index);
   card.setAttribute('aria-label', `Play ${edit.client} ${edit.reel}`);
   card.innerHTML = `<img src="${edit.poster}" alt="" loading="lazy"><div><span>${String(index + 1).padStart(2,'0')} / ${edit.duration}</span><strong>${edit.client} · ${edit.reel}</strong></div>`;
   grid.append(card);
 });
-
-document.querySelectorAll('.filter').forEach(button => {
-  button.addEventListener('click', () => {
-    const selected = button.dataset.filter;
-    document.querySelectorAll('.filter').forEach(item => { const active = item === button; item.classList.toggle('active', active); item.setAttribute('aria-pressed', String(active)); });
-    document.querySelectorAll('.archive-card').forEach(card => { card.hidden = selected !== 'all' && card.dataset.group !== selected; });
-  });
-});
+const archiveRevealTargets = [...grid.querySelectorAll('.reveal')];
+if (reducedMotion.matches || !('IntersectionObserver' in window)) archiveRevealTargets.forEach(element => element.classList.add('visible'));
+else {
+  const archiveObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+    if (!entry.isIntersecting) return; entry.target.classList.add('visible'); archiveObserver.unobserve(entry.target);
+  }), {threshold:.06, rootMargin:'0px 0px -5% 0px'});
+  archiveRevealTargets.forEach(element => archiveObserver.observe(element));
+}
+document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
+  const selected = button.dataset.filter;
+  document.querySelectorAll('.filter').forEach(item => { const active = item === button; item.classList.toggle('active', active); item.setAttribute('aria-pressed', String(active)); });
+  document.querySelectorAll('.archive-card').forEach(card => { card.hidden = selected !== 'all' && card.dataset.group !== selected; });
+}));
 
 const dialog = document.getElementById('reel-dialog');
 const dialogVideo = document.getElementById('dialog-video');
 const dialogTitle = document.getElementById('dialog-title');
 const dialogIndex = document.getElementById('dialog-index');
-const closeDialog = () => {
-  dialogVideo.pause(); dialogVideo.removeAttribute('src'); dialogVideo.removeAttribute('poster'); dialogVideo.load(); dialog.close();
-};
-grid.addEventListener('click', event => {
-  const card = event.target.closest('.archive-card'); if (!card) return;
-  inlineVideos.forEach(video => video.pause());
-  const index = Number(card.dataset.index); const edit = edits[index];
+function openReel(index) {
+  projectVideos.forEach(video => video.pause()); heroShowreel.pause();
+  const edit = edits[index];
   dialogTitle.textContent = `${edit.client} / ${edit.reel}`;
   dialogIndex.textContent = `${String(index + 1).padStart(2,'0')} / 15 · ${edit.duration}`;
-  dialogVideo.poster = edit.poster; dialogVideo.src = edit.video; dialog.showModal(); dialogVideo.play().catch(() => {});
+  dialogVideo.poster = edit.poster; dialogVideo.src = edit.video; dialog.showModal();
+  dialogVideo.play().catch(() => {});
+}
+function closeReel() {
+  dialogVideo.pause(); dialogVideo.removeAttribute('src'); dialogVideo.removeAttribute('poster'); dialogVideo.load(); dialog.close();
+  if (!heroPausedByUser && !reducedMotion.matches && heroShowreel.getBoundingClientRect().bottom > 0) heroShowreel.play().catch(() => {});
+}
+grid.addEventListener('click', event => { const card = event.target.closest('.archive-card'); if (card) openReel(Number(card.dataset.index)); });
+document.querySelector('.dialog-close').addEventListener('click', closeReel);
+dialog.addEventListener('click', event => { if (event.target === dialog) closeReel(); });
+dialog.addEventListener('cancel', event => { event.preventDefault(); closeReel(); });
+
+const beats = [
+  {title:'Win the first few seconds.', text:'Open with the image, question, or tension that earns the next moment.', tag:'SHOT SELECTION / STORY'},
+  {title:'Let the story gather momentum.', text:'Shape rhythm through shot length, movement, contrast, and room to breathe.', tag:'PACING / MOTION'},
+  {title:'Leave something with the viewer.', text:'Resolve the sequence with a final image and feeling that holds after the cut.', tag:'STRUCTURE / FINISH'}
+];
+const beatTabs = [...document.querySelectorAll('[data-beat]')];
+function selectBeat(index) {
+  beatTabs.forEach((tab, tabIndex) => { const active = tabIndex === index; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
+  const panel = document.getElementById('beat-panel');
+  panel.setAttribute('aria-labelledby', beatTabs[index].id); panel.querySelector('.beat-number').textContent = String(index + 1).padStart(2,'0'); panel.querySelector('h3').textContent = beats[index].title; panel.querySelector('p').textContent = beats[index].text; panel.querySelector('.beat-tag').textContent = beats[index].tag;
+}
+beatTabs.forEach((tab, index) => {
+  tab.addEventListener('click', () => selectBeat(index));
+  tab.addEventListener('keydown', event => {
+    let next = index; if (event.key === 'ArrowRight') next = (index + 1) % beatTabs.length; else if (event.key === 'ArrowLeft') next = (index + beatTabs.length - 1) % beatTabs.length; else if (event.key === 'Home') next = 0; else if (event.key === 'End') next = beatTabs.length - 1; else return;
+    event.preventDefault(); selectBeat(next); beatTabs[next].focus();
+  });
 });
-document.querySelector('.dialog-close').addEventListener('click', closeDialog);
-dialog.addEventListener('click', event => { if (event.target === dialog) closeDialog(); });
-dialog.addEventListener('cancel', event => { event.preventDefault(); closeDialog(); });
+
+const editConsole = document.getElementById('edit-console');
+const timelinePlay = document.getElementById('timeline-play');
+const timelineScrub = document.getElementById('timeline-scrub');
+const timelineTime = document.getElementById('timeline-time');
+const timelinePhase = document.getElementById('timeline-phase');
+for (let index = 0; index < 92; index += 1) { const bar = document.createElement('i'); bar.style.height = `${14 + Math.abs(Math.sin(index * 1.7) * Math.cos(index * .29)) * 82}%`; document.getElementById('waveform').append(bar); }
+let timelinePosition = 0, timelinePlaying = false, timelineVisible = false, timelineFrame = 0, timelineLast = 0;
+function paintTimeline() {
+  const normalized = timelinePosition / 1200; editConsole.style.setProperty('--position', `${normalized * 100}%`); timelineScrub.value = String(Math.round(timelinePosition));
+  const seconds = timelinePosition / 100; timelineTime.textContent = `00:${String(Math.floor(seconds)).padStart(2,'0')}:${String(Math.floor((seconds % 1) * 24)).padStart(2,'0')}`; timelineScrub.setAttribute('aria-valuetext', `${seconds.toFixed(1)} seconds of 12 seconds`);
+  timelinePhase.textContent = normalized < .3 ? '01 / HOOK' : normalized < .7 ? '02 / BUILD' : '03 / FEELING';
+  editConsole.querySelectorAll('.clip').forEach(clip => clip.classList.toggle('active', normalized >= Number(clip.dataset.start) && (normalized < Number(clip.dataset.end) || normalized === 1 && Number(clip.dataset.end) === 1)));
+}
+function animateTimeline(now) {
+  timelineFrame = 0; if (!timelinePlaying || !timelineVisible || document.hidden) return;
+  if (timelineLast) timelinePosition = (timelinePosition + Math.min(now - timelineLast,100) / 10) % 1200; timelineLast = now; paintTimeline(); timelineFrame = requestAnimationFrame(animateTimeline);
+}
+function scheduleTimeline() { cancelAnimationFrame(timelineFrame); timelineLast = 0; if (timelinePlaying && timelineVisible && !document.hidden) timelineFrame = requestAnimationFrame(animateTimeline); }
+function setTimelinePlaying(value) { timelinePlaying = value; timelinePlay.textContent = value ? 'Ⅱ Pause' : '▶ Play'; timelinePlay.setAttribute('aria-pressed', String(value)); scheduleTimeline(); }
+timelinePlay.addEventListener('click', () => setTimelinePlaying(!timelinePlaying));
+timelineScrub.addEventListener('input', () => { setTimelinePlaying(false); timelinePosition = Number(timelineScrub.value); paintTimeline(); });
+new IntersectionObserver(entries => { timelineVisible = entries[0].isIntersecting; scheduleTimeline(); }, {threshold:.05}).observe(editConsole);
+document.addEventListener('visibilitychange', scheduleTimeline); paintTimeline();
 
 const copyButton = document.querySelector('.copy-email');
 const copyStatus = document.querySelector('.copy-status');
@@ -125,17 +208,6 @@ copyButton.addEventListener('click', async () => {
   catch { copyStatus.textContent = email; }
 });
 
-const revealTargets = document.querySelectorAll('.section-label, .section-heading, .about-grid, .featured-card, .archive-card, .skill-card, .process-grid article, .contact-copy');
-if (reducedMotion.matches || !('IntersectionObserver' in window)) revealTargets.forEach(element => element.classList.add('visible'));
-else {
-  revealTargets.forEach(element => element.classList.add('reveal'));
-  const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } }), {threshold:.08, rootMargin:'0px 0px -8% 0px'});
-  revealTargets.forEach(element => observer.observe(element));
-}
-
 reducedMotion.addEventListener('change', event => {
-  if (event.matches) {
-    window.clearTimeout(glitchTimer);
-    glitchTitle.classList.remove('glitching');
-  } else scheduleGlitch();
+  if (event.matches) { setShowreelPlaying(false); setTimelinePlaying(false); document.querySelectorAll('.reveal').forEach(element => element.classList.add('visible')); }
 });
