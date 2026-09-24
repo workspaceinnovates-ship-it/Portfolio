@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
+  <title id="title">RAIKO Cutmark logo concept</title>
+  <desc id="desc">A cinematic R monogram with a play triangle and editing cut line beside the RAIKO wordmark.</desc>
+  <rect width="1400" height="760" fill="#101110"/>
+
+  <g stroke="#343631" stroke-width="1" opacity="0.62">
+    <path d="M70 70H1330M70 690H1330"/>
+    <path d="M70 70V690M1330 70V690"/>
+  </g>
+  <g fill="#555950">
+    <rect x="70" y="66" width="1" height="9"/><rect x="120" y="66" width="1" height="5"/>
+    <rect x="170" y="66" width="1" height="5"/><rect x="220" y="66" width="1" height="9"/>
+    <rect x="270" y="66" width="1" height="5"/><rect x="320" y="66" width="1" height="5"/>
+    <rect x="370" y="66" width="1" height="9"/><rect x="420" y="66" width="1" height="5"/>
+    <rect x="470" y="66" width="1" height="5"/><rect x="520" y="66" width="1" height="9"/>
+    <rect x="570" y="66" width="1" height="5"/><rect x="620" y="66" width="1" height="5"/>
+    <rect x="670" y="66" width="1" height="9"/><rect x="720" y="66" width="1" height="5"/>
+    <rect x="770" y="66" width="1" height="5"/><rect x="820" y="66" width="1" height="9"/>
+    <rect x="870" y="66" width="1" height="5"/><rect x="920" y="66" width="1" height="5"/>
+    <rect x="970" y="66" width="1" height="9"/><rect x="1020" y="66" width="1" height="5"/>
+    <rect x="1070" y="66" width="1" height="5"/><rect x="1120" y="66" width="1" height="9"/>
+    <rect x="1170" y="66" width="1" height="5"/><rect x="1220" y="66" width="1" height="5"/>
+    <rect x="1270" y="66" width="1" height="9"/><rect x="1330" y="66" width="1" height="9"/>
+  </g>
+
+  <text x="94" y="122" fill="#aaada4" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" letter-spacing="3">IDENTITY STUDY / 01</text>
+  <text x="1306" y="122" fill="#ff693b" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" letter-spacing="3">THE CUTMARK</text>
+
+  <g transform="translate(112 208)">
+    <path d="M0 0H173C267 0 322 48 322 130C322 188 293 229 241 250L335 382H230L149 266H94V382H0V0ZM94 82V187H166C207 187 228 169 228 134C228 99 207 82 166 82H94Z" fill="#f0efe8"/>
+    <path d="M145 107L145 164L199 135.5Z" fill="#ff693b"/>
+    <path d="M247 248L335 382H272L196 269Z" fill="#ff693b"/>
+    <rect x="338" y="0" width="7" height="382" fill="#ff693b"/>
+    <g fill="#ff693b">
+      <rect x="0" y="405" width="42" height="5"/>
+      <rect x="55" y="405" width="12" height="5"/>
+      <rect x="80" y="405" width="12" height="5"/>
+      <rect x="105" y="405" width="12" height="5"/>
+      <rect x="130" y="405" width="42" height="5"/>
+      <rect x="185" y="405" width="12" height="5"/>
+      <rect x="210" y="405" width="12" height="5"/>
+      <rect x="235" y="405" width="12" height="5"/>
+      <rect x="260" y="405" width="42" height="5"/>
+      <rect x="315" y="405" width="30" height="5"/>
+    </g>
+  </g>
+
+  <g transform="translate(535 235)">
+    <text x="0" y="218" fill="#f0efe8" font-family="Arial Narrow, Helvetica Neue, Arial, sans-serif" font-size="190" font-weight="800" letter-spacing="12">RAIKO</text>
+    <rect x="6" y="254" width="718" height="2" fill="#343631"/>
+    <rect x="6" y="253" width="152" height="4" fill="#ff693b"/>
+    <text x="7" y="307" fill="#aaada4" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" letter-spacing="5">EDITING / MOTION / COLOR</text>
+    <text x="724" y="307" fill="#ff693b" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" letter-spacing="3">FRAME 21</text>
+  </g>
+
+  <text x="94" y="650" fill="#777b72" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="14" letter-spacing="2">PLAY TRIANGLE  /  CUT LINE  /  FORWARD MOTION</text>
+  <circle cx="1300" cy="645" r="5" fill="#ff693b"/>
+</svg>
