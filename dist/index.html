@@ -11,6 +11,7 @@
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
+  <div class="page-curtain" aria-hidden="true"><span>RAIKO / EDIT IN PROGRESS</span></div>
   <header class="site-header">
     <a class="logo" href="#top" aria-label="RAIKO home"><span>R</span> RAIKO</a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
@@ -23,7 +24,7 @@
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="hero-copy">
         <div class="hero-kicker"><span>Creative visual</span><span>Selected work / 2026</span></div>
-        <h1 id="hero-title"><span>PORTO</span><span>FOLIO<i>.</i></span></h1>
+        <h1 id="hero-title" class="glitch-title"><span data-text="PORTO">PORTO</span><span data-text="FOLIO.">FOLIO<i>.</i></span></h1>
         <p class="hero-intro">Video editing, motion, and color for brands that want people to stop scrolling and feel something.</p>
         <div class="hero-actions"><a class="button button-dark" href="#work">Watch my edits <span>↓</span></a><a class="text-link" href="#contact">Start a project <span>↗</span></a></div>
       </div>
@@ -34,6 +35,8 @@
       </div>
       <div class="hero-footer"><span>01</span><p>Cut by cut.<br>Frame by frame.</p><a href="#about" aria-label="Continue to about section">↓</a></div>
     </section>
+
+    <div class="motion-ticker" aria-hidden="true"><div><span>EDIT</span><i>✦</i><span>MOTION</span><i>✦</i><span>COLOR</span><i>✦</i><span>RHYTHM</span><i>✦</i><span>EDIT</span><i>✦</i><span>MOTION</span><i>✦</i><span>COLOR</span><i>✦</i><span>RHYTHM</span><i>✦</i></div></div>
 
     <section class="about section" id="about" aria-labelledby="about-title">
       <div class="section-label"><span>About</span><i></i><b>02</b></div>
@@ -85,6 +88,13 @@
   </main>
 
   <footer><a class="logo" href="#top"><span>R</span> RAIKO</a><p>Independent video editor · Hyderabad, India</p><p>© <span id="year">2026</span> RAIKO</p></footer>
+  <aside class="motion-popup" aria-labelledby="popup-title" aria-hidden="true" inert>
+    <button class="popup-close" type="button" aria-label="Close message">×</button>
+    <span class="popup-tag">HEADPHONES ON</span>
+    <strong id="popup-title">PLAY IT<br>LOUD.</strong>
+    <p>The edits hit different with sound.</p>
+    <a href="#work">Watch selected work <span>↘</span></a>
+  </aside>
   <dialog class="reel-dialog" id="reel-dialog" aria-labelledby="dialog-title"><div class="dialog-top"><div><span id="dialog-index">01 / 15</span><h2 id="dialog-title">Scalebucks / Reel 1</h2></div><button type="button" class="dialog-close" aria-label="Close video">×</button></div><video id="dialog-video" controls playsinline preload="metadata"></video></dialog>
   <script src="site.js?v=13"></script>
 </body>

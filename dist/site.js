@@ -18,6 +18,43 @@ const edits = [
 
 document.getElementById('year').textContent = new Date().getFullYear();
 
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const popup = document.querySelector('.motion-popup');
+const popupClose = document.querySelector('.popup-close');
+
+function hidePopup() {
+  popup.classList.remove('show');
+  popup.setAttribute('aria-hidden', 'true');
+  popup.inert = true;
+  sessionStorage.setItem('raiko-popup-seen', 'true');
+}
+
+if (!sessionStorage.getItem('raiko-popup-seen')) {
+  window.setTimeout(() => {
+    popup.inert = false;
+    popup.classList.add('show');
+    popup.setAttribute('aria-hidden', 'false');
+  }, reducedMotion.matches ? 150 : 1800);
+}
+popupClose.addEventListener('click', hidePopup);
+popup.querySelector('a').addEventListener('click', hidePopup);
+
+const glitchTitle = document.querySelector('.glitch-title');
+let glitchTimer = 0;
+function scheduleGlitch() {
+  window.clearTimeout(glitchTimer);
+  if (reducedMotion.matches || document.hidden) return;
+  glitchTimer = window.setTimeout(() => {
+    glitchTitle.classList.add('glitching');
+    window.setTimeout(() => {
+      glitchTitle.classList.remove('glitching');
+      scheduleGlitch();
+    }, 520);
+  }, 4200 + Math.random() * 2200);
+}
+document.addEventListener('visibilitychange', scheduleGlitch);
+scheduleGlitch();
+
 const menuToggle = document.querySelector('.menu-toggle');
 const nav = document.getElementById('site-nav');
 menuToggle.addEventListener('click', () => {
@@ -89,9 +126,16 @@ copyButton.addEventListener('click', async () => {
 });
 
 const revealTargets = document.querySelectorAll('.section-label, .section-heading, .about-grid, .featured-card, .archive-card, .skill-card, .process-grid article, .contact-copy');
-if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) revealTargets.forEach(element => element.classList.add('visible'));
+if (reducedMotion.matches || !('IntersectionObserver' in window)) revealTargets.forEach(element => element.classList.add('visible'));
 else {
   revealTargets.forEach(element => element.classList.add('reveal'));
   const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } }), {threshold:.08, rootMargin:'0px 0px -8% 0px'});
   revealTargets.forEach(element => observer.observe(element));
 }
+
+reducedMotion.addEventListener('change', event => {
+  if (event.matches) {
+    window.clearTimeout(glitchTimer);
+    glitchTitle.classList.remove('glitching');
+  } else scheduleGlitch();
+});
