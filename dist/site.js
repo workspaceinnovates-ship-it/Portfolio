@@ -177,10 +177,23 @@ tiltTargets.forEach(element => {
   element.addEventListener('blur', () => resetTilt(element), true);
 });
 
+const motionCharacter = document.querySelector('.motion-character');
+let characterTimer = 0;
+motionCharacter.addEventListener('click', () => {
+  if (reducedMotion.matches) return;
+  window.clearTimeout(characterTimer);
+  motionCharacter.classList.remove('dancing');
+  requestAnimationFrame(() => {
+    motionCharacter.classList.add('dancing');
+    characterTimer = window.setTimeout(() => motionCharacter.classList.remove('dancing'), 1200);
+  });
+});
+
 reducedMotion.addEventListener('change', event => {
   if (event.matches) {
     window.clearTimeout(glitchTimer);
     glitchTitle.classList.remove('glitching');
     tiltTargets.forEach(resetTilt);
+    motionCharacter.classList.remove('dancing');
   } else scheduleGlitch();
 });
