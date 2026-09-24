@@ -22,6 +22,24 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const popup = document.querySelector('.motion-popup');
 const popupClose = document.querySelector('.popup-close');
 
+// This fixed progress cue never takes up layout space.
+const scrollProgress = document.createElement('div');
+scrollProgress.className = 'scroll-progress';
+scrollProgress.setAttribute('aria-hidden', 'true');
+document.body.append(scrollProgress);
+
+let progressFrame = 0;
+function updateScrollProgress() {
+  const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+  scrollProgress.style.setProperty('--scroll-progress', progress);
+  progressFrame = 0;
+}
+window.addEventListener('scroll', () => {
+  if (!progressFrame) progressFrame = requestAnimationFrame(updateScrollProgress);
+}, {passive:true});
+updateScrollProgress();
+
 function hidePopup() {
   popup.classList.remove('show');
   popup.setAttribute('aria-hidden', 'true');
@@ -126,6 +144,11 @@ copyButton.addEventListener('click', async () => {
 });
 
 const revealTargets = document.querySelectorAll('.section-label, .section-heading, .about-grid, .featured-card, .archive-card, .skill-card, .process-grid article, .contact-copy');
+document.querySelectorAll('.featured-grid, .archive-grid, .skill-grid, .process-grid').forEach(group => {
+  [...group.children].forEach((element, index) => {
+    element.style.setProperty('--reveal-delay', `${Math.min(index, 7) * 45}ms`);
+  });
+});
 if (reducedMotion.matches || !('IntersectionObserver' in window)) revealTargets.forEach(element => element.classList.add('visible'));
 else {
   revealTargets.forEach(element => element.classList.add('reveal'));
@@ -133,9 +156,31 @@ else {
   revealTargets.forEach(element => observer.observe(element));
 }
 
+// Pointer tilt is applied only to inner surfaces, preserving card positions.
+const tiltTargets = document.querySelectorAll('.featured-card .video-shell, .skill-card');
+function resetTilt(element) {
+  element.style.setProperty('--tilt-x', '0deg');
+  element.style.setProperty('--tilt-y', '0deg');
+  element.style.setProperty('--tilt-lift', '0px');
+}
+tiltTargets.forEach(element => {
+  element.addEventListener('pointermove', event => {
+    if (reducedMotion.matches || event.pointerType === 'touch') return;
+    const bounds = element.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width - .5;
+    const y = (event.clientY - bounds.top) / bounds.height - .5;
+    element.style.setProperty('--tilt-x', `${(-y * 3.5).toFixed(2)}deg`);
+    element.style.setProperty('--tilt-y', `${(x * 4.5).toFixed(2)}deg`);
+    element.style.setProperty('--tilt-lift', '-3px');
+  });
+  element.addEventListener('pointerleave', () => resetTilt(element));
+  element.addEventListener('blur', () => resetTilt(element), true);
+});
+
 reducedMotion.addEventListener('change', event => {
   if (event.matches) {
     window.clearTimeout(glitchTimer);
     glitchTitle.classList.remove('glitching');
+    tiltTargets.forEach(resetTilt);
   } else scheduleGlitch();
 });
