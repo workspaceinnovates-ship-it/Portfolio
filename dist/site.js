@@ -41,6 +41,49 @@ const scrub = document.getElementById('timeline-scrub');
 const output = document.getElementById('timeline-time');
 const phase = document.getElementById('timeline-phase');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+const revealGroups = [
+  ['.section-head', '.section-intro', '.live-edit', '.beat-panel', '.note', '.client-line', '.toolkit-heading'],
+  ['.featured-card'],
+  ['.edit-timeline button'],
+  ['.reel-card'],
+  ['.proof-grid > div'],
+  ['.service'],
+  ['.about > div', '.about-portrait'],
+  ['.tool-card'],
+  ['.process-grid > div'],
+  ['.contact-grid > div']
+];
+
+const revealHeadings = document.querySelectorAll('.section-intro h2, .proof h2, .about h2, .toolkit-heading h3, .about-portrait figcaption strong, .contact h2');
+const revealTargets = [];
+revealGroups.forEach(selectors => {
+  const elements = document.querySelectorAll(selectors.join(','));
+  elements.forEach((element, index) => {
+    element.classList.add('motion-reveal');
+    element.style.setProperty('--reveal-delay', `${Math.min(index * 65, 260)}ms`);
+    revealTargets.push(element);
+  });
+});
+revealHeadings.forEach(heading => {
+  heading.classList.add('motion-text');
+  revealTargets.push(heading);
+});
+
+if (reducedMotion.matches || !('IntersectionObserver' in window)) {
+  revealTargets.forEach(element => element.classList.add('is-visible'));
+} else {
+  document.documentElement.classList.add('motion-ready');
+  const revealObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-visible');
+      revealObserver.unobserve(entry.target);
+    });
+  }, {rootMargin:'0px 0px -8% 0px', threshold:.08});
+  revealTargets.forEach(element => revealObserver.observe(element));
+}
+
 let position = 0;
 let playing = false;
 let timelineVisible = false;
