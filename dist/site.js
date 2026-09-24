@@ -146,6 +146,65 @@ document.querySelectorAll('.media-frame').forEach(frame => {
   });
 });
 
+document.querySelectorAll('.reel-selector').forEach(selector => {
+  const card = selector.closest('.reel-card');
+  const frame = card.querySelector('.media-frame');
+  const video = frame.querySelector('video');
+  const play = frame.querySelector('.media-play');
+  const status = card.querySelector('.media-status');
+  const duration = card.querySelector('.reel-duration');
+  const reelTabs = [...selector.querySelectorAll('[role="tab"]')];
+
+  function activateReel(tab, autoplay) {
+    const isCurrent = tab.getAttribute('aria-selected') === 'true';
+    if (!isCurrent) {
+      video.pause();
+      reelTabs.forEach(reelTab => {
+        const selected = reelTab === tab;
+        reelTab.setAttribute('aria-selected', String(selected));
+        reelTab.tabIndex = selected ? 0 : -1;
+      });
+      video.removeAttribute('src');
+      video.dataset.src = tab.dataset.src;
+      video.poster = tab.dataset.poster;
+      video.setAttribute('aria-label', `${tab.dataset.label} edited by RAIKO`);
+      duration.textContent = tab.dataset.duration;
+      play.setAttribute('aria-label', `Play ${tab.dataset.label}`);
+      play.hidden = false;
+      status.textContent = '';
+      video.load();
+      frame.classList.remove('reel-changing');
+      void frame.offsetWidth;
+      frame.classList.add('reel-changing');
+    }
+
+    if (!autoplay || (!video.paused && isCurrent)) return;
+    portfolioVideos.forEach(other => { if (other !== video) other.pause(); });
+    if (!video.getAttribute('src')) video.src = video.dataset.src;
+    play.hidden = true;
+    video.focus();
+    video.play().catch(() => {
+      play.hidden = false;
+      status.textContent = 'Press play in the video controls to watch this reel.';
+    });
+  }
+
+  reelTabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => activateReel(tab, true));
+    tab.addEventListener('keydown', event => {
+      let next = index;
+      if (event.key === 'ArrowRight') next = (index + 1) % reelTabs.length;
+      else if (event.key === 'ArrowLeft') next = (index + reelTabs.length - 1) % reelTabs.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = reelTabs.length - 1;
+      else return;
+      event.preventDefault();
+      activateReel(reelTabs[next], false);
+      reelTabs[next].focus();
+    });
+  });
+});
+
 document.addEventListener('visibilitychange', () => {
   scheduleTimeline();
   if (document.hidden) portfolioVideos.forEach(video => video.pause());
