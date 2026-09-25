@@ -194,7 +194,7 @@ const timelineToggle = document.getElementById('timeline-toggle');
 const timelineScrub = document.getElementById('timeline-scrub');
 const timelineTime = document.getElementById('timeline-time');
 const timelineStage = document.getElementById('timeline-stage');
-const timelineStages = [...timeline.querySelectorAll('[data-stage]')];
+const timelineClips = [...timeline.querySelectorAll('[data-range-start]')];
 const rhythmBars = timeline.querySelector('.rhythm-bars');
 const rhythmPattern = [28,54,38,72,44,88,58,36,66,48,82,42,62,34,76,51,90,46,68,39,58,84,43,72,35,62,95,47,79,54,37,69,86,44,60,33,75,52,89,41,64,49,81,55,36,70,45,60];
 rhythmBars.innerHTML = rhythmPattern.map(height => `<i style="--bar-height:${height}%"></i>`).join('');
@@ -224,7 +224,12 @@ function setTimeline(value) {
   timelineScrub.value = String(timelineValue);
   timelineTime.value = formatTimeline(timelineValue);
   timelineStage.textContent = stage.label;
-  timelineStages.forEach(element => element.classList.toggle('active', element.dataset.stage === stage.key));
+  timelineClips.forEach(element => {
+    const start = Number(element.dataset.rangeStart);
+    const end = Number(element.dataset.rangeEnd);
+    const active = timelineValue >= start && (timelineValue < end || (end === 12 && timelineValue === 12));
+    element.classList.toggle('active', active);
+  });
 }
 
 function stopTimeline() {
@@ -237,9 +242,14 @@ function stopTimeline() {
 
 function runTimeline(timestamp) {
   if (!timelinePlaying) return;
-  setTimeline((timestamp - timelineStartedAt) / 1000);
-  if (timelineValue >= 12) stopTimeline();
-  else timelineFrame = requestAnimationFrame(runTimeline);
+  let nextValue = (timestamp - timelineStartedAt) / 1000;
+  if (nextValue >= 12) {
+    const completedLoops = Math.floor(nextValue / 12);
+    timelineStartedAt += completedLoops * 12000;
+    nextValue %= 12;
+  }
+  setTimeline(nextValue);
+  timelineFrame = requestAnimationFrame(runTimeline);
 }
 
 timelineToggle.addEventListener('click', () => {
