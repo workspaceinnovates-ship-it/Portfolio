@@ -76,8 +76,30 @@
       </div>
     </section>
 
-    <section class="process section" aria-labelledby="process-title">
-      <div class="section-label"><span>My process</span><i></i><b>05</b></div><h2 id="process-title" class="sr-only">My editing process</h2>
+    <section class="process section" id="process" aria-labelledby="process-title">
+      <div class="section-label"><span>My process</span><i></i><b>05</b></div>
+      <div class="timeline-intro">
+        <h2 id="process-title">STORY LIVES<br><span>BETWEEN THE CUTS.</span></h2>
+        <p>Play or scrub the timeline to move through a simple Hook → Build → Payoff structure.</p>
+      </div>
+      <div class="edit-timeline" id="edit-timeline" style="--timeline-progress:0%">
+        <div class="timeline-toolbar">
+          <div><b>■</b><strong>THE EDIT</strong><span>/</span><span>AN INTERACTIVE STUDY</span></div>
+          <div><button id="timeline-toggle" type="button" aria-pressed="false">▶ PLAY</button><output id="timeline-time" for="timeline-scrub">00:00:00</output></div>
+        </div>
+        <div class="timeline-ruler" aria-hidden="true"><span>00:00</span><span>00:04</span><span>00:08</span><span>00:12</span></div>
+        <div class="timeline-tracks">
+          <div class="track-row story-track"><b>V1 <span>STORY</span></b><div class="track-content"><button type="button" data-timeline-jump="0" data-stage="hook"><small>01</small> THE HOOK</button><button type="button" data-timeline-jump="4" data-stage="build"><small>02</small> THE BUILD</button><button type="button" data-timeline-jump="8" data-stage="payoff"><small>03</small> THE PAYOFF</button></div></div>
+          <div class="track-row motion-track"><b>V2 <span>MOTION</span></b><div class="track-content"><span class="motion-clip clip-build" data-stage="build">◆ TITLES / MOVEMENT ◆</span><span class="motion-clip clip-payoff" data-stage="payoff">◆ FINAL FRAME</span></div></div>
+          <div class="track-row rhythm-track"><b>A1 <span>RHYTHM</span></b><div class="track-content"><span class="rhythm-label">PACING / RHYTHM</span><div class="rhythm-bars" aria-hidden="true"></div></div></div>
+          <div class="timeline-playhead" aria-hidden="true"><i></i></div>
+        </div>
+        <div class="timeline-scrub-wrap">
+          <label class="sr-only" for="timeline-scrub">Scrub the twelve-second editing timeline</label>
+          <input id="timeline-scrub" type="range" min="0" max="12" step="0.01" value="0">
+        </div>
+        <div class="timeline-status"><span>DRAG THE PLAYHEAD. FEEL THE PACE.</span><strong id="timeline-stage">01 / THE HOOK</strong></div>
+      </div>
       <div class="process-grid"><article><span>01</span><strong>ALIGN</strong><h3>Find the story.</h3><p>We define the audience, goal, footage, references, and deadline.</p></article><article><span>02</span><strong>SHAPE</strong><h3>Build the rhythm.</h3><p>I create the first cut, then refine pace and structure around your feedback.</p></article><article><span>03</span><strong>FINISH</strong><h3>Polish the frame.</h3><p>Motion, sound, and color bring the final piece together for delivery.</p></article></div>
     </section>
 
@@ -100,6 +122,6 @@
     <span aria-hidden="true">CLICK TO MOVE ✦</span>
   </button>
   <dialog class="reel-dialog" id="reel-dialog" aria-labelledby="dialog-title"><div class="dialog-top"><div><span id="dialog-index">01 / 15</span><h2 id="dialog-title">Scalebucks / Reel 1</h2></div><button type="button" class="dialog-close" aria-label="Close video">×</button></div><video id="dialog-video" controls playsinline preload="metadata"></video></dialog>
-  <script src="site.js?v=14"></script>
+  <script src="site.js?v=15"></script>
 </body>
 </html>

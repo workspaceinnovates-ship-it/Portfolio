@@ -189,11 +189,99 @@ motionCharacter.addEventListener('click', () => {
   });
 });
 
+const timeline = document.getElementById('edit-timeline');
+const timelineToggle = document.getElementById('timeline-toggle');
+const timelineScrub = document.getElementById('timeline-scrub');
+const timelineTime = document.getElementById('timeline-time');
+const timelineStage = document.getElementById('timeline-stage');
+const timelineStages = [...timeline.querySelectorAll('[data-stage]')];
+const rhythmBars = timeline.querySelector('.rhythm-bars');
+const rhythmPattern = [28,54,38,72,44,88,58,36,66,48,82,42,62,34,76,51,90,46,68,39,58,84,43,72,35,62,95,47,79,54,37,69,86,44,60,33,75,52,89,41,64,49,81,55,36,70,45,60];
+rhythmBars.innerHTML = rhythmPattern.map(height => `<i style="--bar-height:${height}%"></i>`).join('');
+
+let timelineValue = 0;
+let timelinePlaying = false;
+let timelineFrame = 0;
+let timelineStartedAt = 0;
+
+function formatTimeline(value) {
+  const seconds = Math.floor(value);
+  const frames = Math.floor((value - seconds) * 24);
+  return `00:${String(seconds).padStart(2,'0')}:${String(frames).padStart(2,'0')}`;
+}
+
+function currentTimelineStage(value) {
+  if (value < 4) return {key:'hook', label:'01 / THE HOOK'};
+  if (value < 8) return {key:'build', label:'02 / THE BUILD'};
+  return {key:'payoff', label:'03 / THE PAYOFF'};
+}
+
+function setTimeline(value) {
+  timelineValue = Math.min(12, Math.max(0, Number(value)));
+  const progress = `${(timelineValue / 12) * 100}%`;
+  const stage = currentTimelineStage(timelineValue);
+  timeline.style.setProperty('--timeline-progress', progress);
+  timelineScrub.value = String(timelineValue);
+  timelineTime.value = formatTimeline(timelineValue);
+  timelineStage.textContent = stage.label;
+  timelineStages.forEach(element => element.classList.toggle('active', element.dataset.stage === stage.key));
+}
+
+function stopTimeline() {
+  timelinePlaying = false;
+  cancelAnimationFrame(timelineFrame);
+  timeline.classList.remove('playing');
+  timelineToggle.setAttribute('aria-pressed', 'false');
+  timelineToggle.textContent = reducedMotion.matches ? 'NEXT BEAT' : '▶ PLAY';
+}
+
+function runTimeline(timestamp) {
+  if (!timelinePlaying) return;
+  setTimeline((timestamp - timelineStartedAt) / 1000);
+  if (timelineValue >= 12) stopTimeline();
+  else timelineFrame = requestAnimationFrame(runTimeline);
+}
+
+timelineToggle.addEventListener('click', () => {
+  if (reducedMotion.matches) {
+    setTimeline(timelineValue >= 12 ? 0 : timelineValue < 4 ? 4 : timelineValue < 8 ? 8 : 12);
+    return;
+  }
+  if (timelinePlaying) return stopTimeline();
+  if (timelineValue >= 12) setTimeline(0);
+  timelinePlaying = true;
+  timelineStartedAt = performance.now() - timelineValue * 1000;
+  timeline.classList.add('playing');
+  timelineToggle.setAttribute('aria-pressed', 'true');
+  timelineToggle.textContent = 'Ⅱ PAUSE';
+  timelineFrame = requestAnimationFrame(runTimeline);
+});
+
+timelineScrub.addEventListener('input', event => {
+  setTimeline(event.target.value);
+  if (timelinePlaying) timelineStartedAt = performance.now() - timelineValue * 1000;
+});
+timeline.querySelectorAll('[data-timeline-jump]').forEach(button => button.addEventListener('click', () => {
+  setTimeline(button.dataset.timelineJump);
+  if (timelinePlaying) timelineStartedAt = performance.now() - timelineValue * 1000;
+}));
+setTimeline(0);
+
+if ('IntersectionObserver' in window) {
+  const timelineVisibility = new IntersectionObserver(entries => {
+    entries.forEach(entry => document.body.classList.toggle('timeline-in-view', entry.isIntersecting));
+  }, {threshold:.18});
+  timelineVisibility.observe(timeline);
+}
+
 reducedMotion.addEventListener('change', event => {
   if (event.matches) {
     window.clearTimeout(glitchTimer);
     glitchTitle.classList.remove('glitching');
     tiltTargets.forEach(resetTilt);
     motionCharacter.classList.remove('dancing');
+    stopTimeline();
   } else scheduleGlitch();
 });
+
+if (reducedMotion.matches) timelineToggle.textContent = 'NEXT BEAT';
