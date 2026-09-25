@@ -156,6 +156,25 @@ else {
   revealTargets.forEach(element => observer.observe(element));
 }
 
+const paperReveal = document.querySelector('[data-paper-reveal]');
+if (paperReveal) {
+  if (reducedMotion.matches || !('IntersectionObserver' in window)) paperReveal.classList.add('is-revealed');
+  else {
+    const paperObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-revealed');
+      paperObserver.unobserve(entry.target);
+    }), {threshold:.16, rootMargin:'0px 0px -8% 0px'});
+    paperObserver.observe(paperReveal);
+  }
+  if ('IntersectionObserver' in window) {
+    const paperVisibility = new IntersectionObserver(entries => {
+      entries.forEach(entry => document.body.classList.toggle('paper-in-view', entry.isIntersecting));
+    }, {threshold:.08, rootMargin:'-10% 0px -10% 0px'});
+    paperVisibility.observe(paperReveal.closest('.paper-story'));
+  }
+}
+
 // Pointer tilt is applied only to inner surfaces, preserving card positions.
 const tiltTargets = document.querySelectorAll('.featured-card .video-shell, .skill-card');
 function resetTilt(element) {
