@@ -252,12 +252,8 @@ function runTimeline(timestamp) {
   timelineFrame = requestAnimationFrame(runTimeline);
 }
 
-timelineToggle.addEventListener('click', () => {
-  if (reducedMotion.matches) {
-    setTimeline(timelineValue >= 12 ? 0 : timelineValue < 4 ? 4 : timelineValue < 8 ? 8 : 12);
-    return;
-  }
-  if (timelinePlaying) return stopTimeline();
+function startTimeline() {
+  if (timelinePlaying || reducedMotion.matches) return;
   if (timelineValue >= 12) setTimeline(0);
   timelinePlaying = true;
   timelineStartedAt = performance.now() - timelineValue * 1000;
@@ -265,6 +261,15 @@ timelineToggle.addEventListener('click', () => {
   timelineToggle.setAttribute('aria-pressed', 'true');
   timelineToggle.textContent = 'Ⅱ PAUSE';
   timelineFrame = requestAnimationFrame(runTimeline);
+}
+
+timelineToggle.addEventListener('click', () => {
+  if (reducedMotion.matches) {
+    setTimeline(timelineValue >= 12 ? 0 : timelineValue < 4 ? 4 : timelineValue < 8 ? 8 : 12);
+    return;
+  }
+  if (timelinePlaying) return stopTimeline();
+  startTimeline();
 });
 
 timelineScrub.addEventListener('input', event => {
@@ -279,7 +284,11 @@ setTimeline(0);
 
 if ('IntersectionObserver' in window) {
   const timelineVisibility = new IntersectionObserver(entries => {
-    entries.forEach(entry => document.body.classList.toggle('timeline-in-view', entry.isIntersecting));
+    entries.forEach(entry => {
+      document.body.classList.toggle('timeline-in-view', entry.isIntersecting);
+      if (entry.isIntersecting) startTimeline();
+      else if (timelinePlaying) stopTimeline();
+    });
   }, {threshold:.18});
   timelineVisibility.observe(timeline);
 }
