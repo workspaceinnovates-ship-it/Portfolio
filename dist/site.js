@@ -44,10 +44,10 @@ function hidePopup() {
   popup.classList.remove('show');
   popup.setAttribute('aria-hidden', 'true');
   popup.inert = true;
-  sessionStorage.setItem('raiko-popup-seen', 'true');
+  sessionStorage.setItem('satya-teja-popup-seen', 'true');
 }
 
-if (!sessionStorage.getItem('raiko-popup-seen')) {
+if (!sessionStorage.getItem('satya-teja-popup-seen')) {
   window.setTimeout(() => {
     popup.inert = false;
     popup.classList.add('show');
